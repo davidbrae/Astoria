@@ -1,6 +1,3 @@
-#rsconnect::setAccountInfo(name='davidbrae',
-#                          token='2DC250446547482CF90F4C6771C21D5F',
-#                          secret='c5Evsfx7OGgxpBMKMz4qcF5CZaTCcuTmkppT53Q8')
 
 #deployApp('~/Desktop/Astoria')
 
