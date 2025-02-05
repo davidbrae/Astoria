@@ -65,7 +65,10 @@ kayak2020 <- st_read('2020 trip 12.kmz') %>%
          Who = get_paddler("2020"))
 kayak2021 <- st_read('kay2021.kml') %>%
   mutate(Year = "2021",
-         Who = get_paddler("2021"))
+         Who = "David,Adam,Evan")
+kayak2021Ayal <- st_read('kay2021Ayal.kml') %>%
+  mutate(Year = "2021",
+         Who = "Ayal")
 kayak2022 <- st_read('2022 Paddle trip.kmz') %>%
   mutate(Year = "2022",
          Who = get_paddler("2022"))
@@ -86,6 +89,28 @@ routes <- bind_rows(kayak2009,kayak2010,kayak2011, kayak2012,kayak2013,kayak2014
       drop_units() %>% 
       round(2)
   )
+
+partialroutes <- kayak2021Ayal %>%
+  select(Year, Who, geometry) %>%
+  st_transform(crs = 4326) %>%
+  mutate(
+    distance_m = st_length(geometry),
+    distance_mi = set_units(distance_m, "miles") %>% 
+      drop_units() %>% 
+      round(2)
+  )
+
+routes <- bind_rows(
+  routes,
+  partialroutes %>%
+    st_transform(crs = 4326) %>%
+    mutate(
+      distance_m = st_length(geometry),
+      distance_mi = set_units(distance_m, "miles") %>% 
+        drop_units() %>% 
+        round(2)
+    )
+)
 
 # Starting GPS locations
 StartingGPS <- data.frame(
@@ -230,7 +255,7 @@ server <- function(input, output, session) {
     if (length(input$paddler_filter) > 0) {
       route_data <- route_data %>% 
         filter(Reduce(`|`, lapply(input$paddler_filter, function(x) {
-          grepl(x, Who, ignore.case = TRUE)
+          grepl(paste0("\\b", x, "\\b"), Who, ignore.case = TRUE)  # Use word boundaries to match exact names
         })))
     }
     
@@ -254,7 +279,7 @@ server <- function(input, output, session) {
           format = "image/png",
           transparent = TRUE
         ),
-        group = "NOAA RNC Charts"
+        group = "NOAA ENC"
       ) %>%
       addWMSTiles(
         "https://gis.charttools.noaa.gov/arcgis/rest/services/MCS/ENC/MapServer/exts/MaritimeChartService/WMSServer",
@@ -263,7 +288,7 @@ server <- function(input, output, session) {
           format = "image/png",
           transparent = TRUE
         ),
-        group = "NOAA ENC"
+        group = "NOAA RNC Charts"
       ) %>%
       addWMSTiles(
         "https://gis.charttools.noaa.gov/arcgis/rest/services/MarineNavigation/MapServer/WMSServer",
@@ -336,28 +361,28 @@ server <- function(input, output, session) {
     
     leafletProxy("map") %>% clearShapes()
     
-    for(year in unique(route_data$Year)) {
-      single_route <- route_data %>%
-        filter(Year == year)
-      
+    for(i in 1:nrow(route_data)) {
+      single_route <- route_data[i,]
       coords <- st_coordinates(single_route)
       
-      # Get the first paddler for color (if multiple)
-      main_paddler <- strsplit(single_route$Who, ", ")[[1]][1]
+      # Determine if this is a partial route based on distance
+      is_partial <- single_route$distance_mi < 20  # Adjust threshold as needed
       
       leafletProxy("map") %>%
         addPolylines(
           lng = coords[, "X"],
           lat = coords[, "Y"],
-          color = "black",
+          color =  "black",
           weight = 3,
           opacity = 0.8,
-          layerId = paste0("route_", year),
+          #dashArray = if(is_partial) "5,10" else NULL,
+          layerId = paste0("route_", single_route$Year, "_", i),
           popup = paste(
-            "<strong>Year:</strong>", year,
+            "<strong>Year:</strong>", single_route$Year,
             "<br><strong>Paddler(s):</strong>", single_route$Who,
             "<br><strong>Distance:</strong>", 
-            single_route$distance_mi, "miles"
+            single_route$distance_mi, "miles",
+            if(is_partial) "<br><strong>(Partial Route)</strong>" else ""
           )
         )
     }
