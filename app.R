@@ -1,5 +1,5 @@
 
-#deployApp('~/Desktop/Astoria')
+#rsconnect::deployApp('~/Desktop/Astoria')
 
 library(tidyverse)
 library(sf)
@@ -75,9 +75,14 @@ kayak2023 <- st_read('kay2023.kml') %>%
 kayak2024 <- st_read('kay2024.kml') %>%
   mutate(Year = "2024",
          Who = get_paddler("2024"))
+kayak2025 <- st_read('2025 Astoria final.kmz') %>%
+  mutate(Year = "2025",
+         Who = get_paddler("2025"))
+
+
 
 # Combine routes and calculate distances
-routes <- bind_rows(kayak2009,kayak2010,kayak2011, kayak2012,kayak2013,kayak2014,kayak2015,kayak2016,kayak2017,kayak2018,kayak2019,kayak2020, kayak2021,kayak2022, kayak2023, kayak2024, ) %>%
+routes <- bind_rows(kayak2009,kayak2010,kayak2011, kayak2012,kayak2013,kayak2014,kayak2015,kayak2016,kayak2017,kayak2018,kayak2019,kayak2020, kayak2021,kayak2022, kayak2023, kayak2024,kayak2025 ) %>%
   select(Year, Who, geometry) %>%
   st_transform(crs = 4326) %>%
   mutate(
@@ -122,9 +127,10 @@ StartingGPS <- data.frame(
 
 campGPS <- data.frame(Camp = c("Deer Island South", "Lord Island South", "Lord Island Camp", "Crescent Island",
                                "Sandy Island", "Eureka Bar","Crims Island East", "Tenasillahe Island",
-                               "Skamokawa", "Welch Island","St Helens","Deer Island North","Welch Island Middle","Sauvie Island", "Crims Island West"),
-StartingLat = c(45.959806, 46.125887, 46.130979, 46.061292, 46.001866,46.164706, 46.172667, 46.206906, 46.269131,46.250800,45.866063,45.982428,46.231848,45.789885,46.183503),
-StartingLon = c( -122.823294, -123.002234, -123.008939, -122.879766, -122.856665,-123.227184, -123.121533, -123.432986, -123.463218,-123.460140,-122.793066,-122.844789,-123.437523, -122.787754,-123.163179))
+                               "Skamokawa", "Welch Island","St Helens","Deer Island North","Welch Island Middle","Sauvie Island", "Crims Island West",
+                               "Goat Island"),
+StartingLat = c(45.959806, 46.125887, 46.130979, 46.061292, 46.001866,46.164706, 46.172667, 46.206906, 46.269131,46.250800,45.866063,45.982428,46.231848,45.789885,46.183503,45.9282703),
+StartingLon = c( -122.823294, -123.002234, -123.008939, -122.879766, -122.856665,-123.227184, -123.121533, -123.432986, -123.463218,-123.460140,-122.793066,-122.844789,-123.437523, -122.787754,-123.163179,-122.8140194))
 
 
 

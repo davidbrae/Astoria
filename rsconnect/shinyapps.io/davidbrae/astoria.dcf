@@ -5,8 +5,6 @@ account: davidbrae
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13841234
-bundleId: 9730654
+bundleId: 10122141
 url: https://davidbrae.shinyapps.io/astoria/
 version: 1
-asMultiple: FALSE
-asStatic: FALSE
